@@ -1,0 +1,15 @@
+@import "/common/modules/AutomaticSettings/css/photonOptions.css";
+
+a.button {
+	appearance: button;
+	text-decoration: none;
+	color: unset;
+}
+
+.edit {
+	width: 100%;
+}
+
+.column {
+	width: 50%;
+}
