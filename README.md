@@ -11,7 +11,7 @@ Firefox, Chromium and Thunderbird add-on/WebExtension to open [Great Internet Me
 	* [mersenne.org](https://www.mersenne.org/) (2 - 999,999,937)
 	* [mersenne.ca](https://www.mersenne.ca/) (2 - 9,999,999,967)
 * Supports opening multiple exponents in single page (mersenne.ca only)
-* Type exponent numbers directly in the address bar/omnibox (use the `exp` keyword)
+* Type exponent numbers directly in the address bar/omnibox (Firefox and Chrome only, use the `exp` keyword)
 * Shows a live preview of the exponent(s) that would open
 * Supports exponents with an optional `M` prefix and optional comma or space digit separators
 * Ignores numbers that are not prime
@@ -25,7 +25,7 @@ To contribute to GIMPS, please see the [Distributed Computing](https://github.co
 
 ❤️ Please visit [tealdulcet.com](https://www.tealdulcet.com/) to support this extension and my other software development.
 
-🔜 This will soon be published to Addons.mozilla.org (AMO), Addons.thunderbird.net (ATN) and possibly the Chrome Web Store.
+⬇️ Download from [Addons.mozilla.org](https://addons.mozilla.org/firefox/addon/gimps-opener/) (AMO) and [Addons.thunderbird.net](https://addons.thunderbird.net/thunderbird/addon/gimps-opener/) (ATN).
 
 Use on Thunderbird requires renaming the [thunderbirdmanifest.json](thunderbirdmanifest.json) file to `manifest.json`.
 Use on Chromium/Chrome requires the downloading the [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) and renaming the [chromemanifest.json](chromemanifest.json) file to `manifest.json`.
