@@ -35,6 +35,7 @@ Use on Chromium/Chrome requires the downloading the [webextension-polyfill](http
 Pull requests welcome! Ideas for contributions:
 
 * Convert to [Manifest V3](https://extensionworkshop.com/documentation/develop/manifest-v3-migration-guide/) (MV3)
+* Refactor into more modules
 * Support more than one top level context menu item (see [bug 1294429](https://bugzilla.mozilla.org/show_bug.cgi?id=1294429))
 * Show omnibox suggestions in private windows in Firefox (see [bug 1779400](https://bugzilla.mozilla.org/show_bug.cgi?id=1779400))
 * Support changing the omnibox keyword (see [bug 1375453](https://bugzilla.mozilla.org/show_bug.cgi?id=1375453))

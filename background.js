@@ -14,9 +14,9 @@ const TYPE = Object.freeze({
 const menuStructure = Object.freeze([TYPE.ORG, TYPE.CA]);
 
 // Exponent regular expression
-const reExp = /M?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)/g;
+const reExp = /M?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)/gu;
 // Remove commas and spaces
-const re = /[,\s]/g;
+const re = /[,\s]/gu;
 
 const primes = new Set([2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161, 74207281, 77232917, 82589933]);
 
@@ -61,10 +61,10 @@ function notification(title, message) {
 	if (settings.send) {
 		console.log(title, message);
 		browser.notifications.create({
-			"type": "basic",
-			"iconUrl": browser.runtime.getURL("icons/icon_128.png"),
-			"title": title,
-			"message": message
+			type: "basic",
+			iconUrl: browser.runtime.getURL("icons/icon_128.png"),
+			title,
+			message
 		});
 	}
 }
@@ -83,7 +83,7 @@ function encodeXML(text) {
 		'"': "&quot;",
 		"'": "&apos;"
 	};
-	return text.replace(/[&<>"']/g, (m) => map[m]);
+	return text.replace(/[&<>"']/gu, (m) => map[m]);
 }
 
 /**
@@ -131,7 +131,7 @@ function isExp(num) {
  * Get exponents.
  *
  * @param {string} exampleText
- * @returns {string[]}
+ * @returns {string[]|null}
  */
 function exps(exampleText) {
 	const expnums = Array.from(exampleText.matchAll(reExp), (x) => [x[0], parseInt(x[1].replaceAll(re, ""), 10)]);
@@ -161,7 +161,7 @@ function exponents(exampleText) {
 /**
  * Get mersenne.org URLs.
  *
- * @param {string} expnums
+ * @param {number[]} expnums
  * @param {boolean} [omnibox]
  * @returns {string[]}
  */
@@ -176,7 +176,7 @@ function getORGURLs(expnums/* , omnibox */) {
 /**
  * Get mersenne.ca URLs.
  *
- * @param {string} expnums
+ * @param {number[]} expnums
  * @param {boolean} [omnibox]
  * @returns {string[]}
  */
@@ -193,6 +193,12 @@ function getCAURLs(expnums, omnibox) {
 	return [];
 }
 
+/**
+ * Get URLs.
+ *
+ * @const
+ * @type {Object.<string, function(number[], boolean): string[]>}
+ */
 const getURLs = Object.freeze({
 	// mersenne.org
 	[TYPE.ORG]: getORGURLs,
@@ -207,7 +213,9 @@ const getURLs = Object.freeze({
  * @returns {Promise}
  */
 function delay(delay) {
-	return new Promise((resolve) => setTimeout(resolve, delay));
+	return new Promise((resolve) => {
+		setTimeout(resolve, delay);
+	});
 }
 
 /**
@@ -215,7 +223,7 @@ function delay(delay) {
  *
  * @param {Object} info
  * @param {Object} tab
- * @returns {void}
+ * @returns {Promise<void>}
  * @throws {Error}
  */
 async function handleMenuShown(info, tab) {
@@ -239,7 +247,7 @@ async function handleMenuShown(info, tab) {
  *
  * @param {Object} info
  * @param {Object} tab
- * @returns {void}
+ * @returns {Promise<void>}
  * @throws {Error}
  */
 async function handleMenuChoosen(info, tab) {
@@ -288,19 +296,17 @@ async function handleMenuChoosen(info, tab) {
 
 			if (urls.length > 1) {
 				for (const url of urls) {
-					await browser.tabs.create({ "url": url, active: aactive, discarded: !aactive && settings.lazy, /* index: aindex, */ openerTabId: tab.id });
+					await browser.tabs.create({ url, active: aactive, discarded: !aactive && settings.lazy, /* index: aindex, */ openerTabId: tab.id });
 					// aindex += 1;
 					aactive = false;
 					if (settings.delay) {
 						await delay(settings.delay * 1000);
 					}
 				}
+			} else if (settings.newTab) {
+				browser.tabs.create({ url: urls[0], active: aactive, discarded: !aactive && settings.lazy, /* index: aindex, */ openerTabId: tab.id });
 			} else {
-				if (settings.newTab) {
-					browser.tabs.create({ url: urls[0], active: aactive, discarded: !aactive && settings.lazy, /* index: aindex, */ openerTabId: tab.id });
-				} else {
-					browser.tabs.update(tab.id, { url: urls[0] });
-				}
+				browser.tabs.update(tab.id, { url: urls[0] });
 			}
 		}
 	}
@@ -310,7 +316,7 @@ async function handleMenuChoosen(info, tab) {
  * Apply (new) menu item settings by (re)creating or updating/refreshing the context menu.
  *
  * @param {string?} [exampleText=null]
- * @returns {void}
+ * @returns {Promise<void>}
  */
 async function buildMenu(exampleText) {
 	console.log(exampleText);
@@ -320,7 +326,7 @@ async function buildMenu(exampleText) {
 		const text = settings.livePreview && expnums ? ` (${formatter1.format(expnums).replaceAll("&", "&&")})` : "";
 		menus.update(TYPE.EXP, {
 			title: `Open exponents${text}`,
-			enabled: !!expnums
+			enabled: Boolean(expnums)
 		});
 	} else {
 		await menus.create({
@@ -345,27 +351,25 @@ async function buildMenu(exampleText) {
 		if (menuIsShown) {
 			menus.update(aid, {
 				title: menuText,
-				visible: !!expnums
+				visible: Boolean(expnums)
+			});
+		} else if (IS_CHROME) {
+			await menus.create({
+				id: aid,
+				parentId: TYPE.EXP,
+				title: menuText,
+				contexts: ["selection"]
 			});
 		} else {
-			if (IS_CHROME) {
-				await menus.create({
-					id: aid,
-					parentId: TYPE.EXP,
-					title: menuText,
-					contexts: ["selection"]
-				});
-			} else {
-				await menus.create({
-					id: aid,
-					parentId: TYPE.EXP,
-					title: menuText,
-					icons: {
-						"16": `https://www.${key}/favicon.ico`
-					},
-					contexts: ["selection"]
-				});
-			}
+			await menus.create({
+				id: aid,
+				parentId: TYPE.EXP,
+				title: menuText,
+				icons: {
+					16: `https://www.${key}/favicon.ico`
+				},
+				contexts: ["selection"]
+			});
 		}
 	}
 
@@ -399,7 +403,7 @@ if (!IS_THUNDERBIRD) {
 
 	browser.omnibox.onInputEntered.addListener((url, disposition) => {
 		console.log(url, disposition);
-		if (/^(?:https?|ftp):/i.test(url)) {
+		if (/^(?:https?|ftp):/iu.test(url)) {
 			switch (disposition) {
 				case "currentTab":
 					browser.tabs.update({ url });
@@ -408,7 +412,7 @@ if (!IS_THUNDERBIRD) {
 					browser.tabs.create({ url });
 					break;
 				case "newBackgroundTab":
-					browser.tabs.create({ "url": url, active: false });
+					browser.tabs.create({ url, active: false });
 					break;
 			}
 		}
@@ -463,7 +467,7 @@ function setSettings(asettings) {
  * Init.
  *
  * @public
- * @returns {void}
+ * @returns {Promise<void>}
  */
 async function init() {
 	const platformInfo = await browser.runtime.getPlatformInfo();
