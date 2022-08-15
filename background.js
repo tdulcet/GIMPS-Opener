@@ -210,7 +210,7 @@ const getURLs = Object.freeze({
  * Delay.
  *
  * @param {number} delay
- * @returns {Promise}
+ * @returns {Promise<void>}
  */
 function delay(delay) {
 	return new Promise((resolve) => {
