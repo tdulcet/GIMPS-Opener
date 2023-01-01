@@ -14,7 +14,7 @@ const TYPE = Object.freeze({
 const menuStructure = Object.freeze([TYPE.ORG, TYPE.CA]);
 
 // Exponent regular expression
-const reExp = /M?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)/gu;
+const reExp = /\bM?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)\b/gu;
 // Remove commas and spaces
 const re = /[,\s]/gu;
 
@@ -134,7 +134,7 @@ function isExp(num) {
  * @returns {string[]|null}
  */
 function exps(exampleText) {
-	const expnums = Array.from(exampleText.matchAll(reExp), (x) => [x[0], parseInt(x[1].replaceAll(re, ""), 10)]);
+	const expnums = Array.from(exampleText.matchAll(reExp), (x) => [x[0], Number.parseInt(x[1].replaceAll(re, ""), 10)]);
 	if (expnums) {
 		const aexpnums = expnums.filter((x) => isExp(x[1]));
 		if (aexpnums.length) {
@@ -151,7 +151,7 @@ function exps(exampleText) {
  * @returns {number[]}
  */
 function exponents(exampleText) {
-	const expnums = Array.from(exampleText.matchAll(reExp), (x) => parseInt(x[1].replaceAll(re, ""), 10));
+	const expnums = Array.from(exampleText.matchAll(reExp), (x) => Number.parseInt(x[1].replaceAll(re, ""), 10));
 	if (expnums.length) {
 		return expnums.filter((p) => isExp(p));
 	}
@@ -232,6 +232,8 @@ async function handleMenuShown(info, tab) {
 
 	// do not show menu entry when no text is selected
 	if (!text) {
+		await menus.removeAll();
+		menus.refresh();
 		return;
 	}
 
@@ -436,7 +438,7 @@ function setSettings(asettings) {
 	settings.newTab = false;
 	settings.newWindow = false;
 	settings.private = false;
-	switch (parseInt(asettings.disposition, 10)) {
+	switch (Number.parseInt(asettings.disposition, 10)) {
 		case 1:
 			break;
 		case 2:

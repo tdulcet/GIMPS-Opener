@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/tdulcet/GIMPS-Opener/workflows/CI/badge.svg?branch=main)](https://github.com/tdulcet/GIMPS-Opener/actions)
+
 # GIMPS Opener
 Open GIMPS exponent numbers
 
@@ -43,7 +45,7 @@ Pull requests welcome! Ideas for contributions:
 	* Use [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly) to check if the numbers are prime
 	* Use a combination of Miller-Rabin for detecting composites and Lucas for detecting primes (see the [factor](https://www.gnu.org/software/coreutils/manual/html_node/factor-invocation.html) command from GNU Coreutils)
 * Sync settings in Thunderbird (see [bug 446444](https://bugzilla.mozilla.org/show_bug.cgi?id=446444))
-* Support Firefox for Android (see [bug 1595822](https://bugzilla.mozilla.org/show_bug.cgi?id=1595822))
+* Support Firefox for Android (see [bug 1595822](https://bugzilla.mozilla.org/show_bug.cgi?id=1595822) and [bug 1427501](https://bugzilla.mozilla.org/show_bug.cgi?id=1427501))
 * Localize the add-on
 
 Thanks to Viliam Furík for creating the [GIMPS logo](https://commons.wikimedia.org/wiki/File:GIMPS_logo_2020.png).
