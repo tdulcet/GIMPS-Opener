@@ -7,18 +7,18 @@ const TITLE = "🌐 GIMPS Opener";
 const formatter1 = new Intl.ListFormat([], { style: "short" });
 
 const TYPE = Object.freeze({
-	EXP: "exponent",
+	M: "mersenne",
 	ORG: "mersenne.org",
 	CA: "mersenne.ca"
 });
 const menuStructure = Object.freeze([TYPE.ORG, TYPE.CA]);
 
-// Exponent regular expression
-const reExp = /\bM?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)\b/gu;
+// Mersenne exponent regular expression
+const reMExp = /\bM?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)\b/gu;
 // Remove commas and spaces
 const re = /[,\s]/gu;
 
-const primes = new Set([2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161, 74207281, 77232917, 82589933]);
+const mersennePrimes = new Set([2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161, 74207281, 77232917, 82589933]);
 
 // Thunderbird
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1641573
@@ -45,6 +45,8 @@ const settings = {
 	send: null
 };
 
+const notifications = new Map();
+
 let menuIsShown = false;
 
 let isAllowed = null;
@@ -68,6 +70,18 @@ function notification(title, message) {
 		});
 	}
 }
+
+browser.notifications.onClicked.addListener((notificationId) => {
+	const url = notifications.get(notificationId);
+
+	if (url) {
+		browser.tabs.create({ url });
+	}
+});
+
+browser.notifications.onClosed.addListener((notificationId) => {
+	notifications.delete(notificationId);
+});
 
 /**
  * Encode XML.
@@ -96,10 +110,20 @@ function isPrime(num) {
 	if (num < 2) {
 		return false;
 	}
-	const sqrt = Math.sqrt(num);
-	for (let p = 2; p <= sqrt; ++p) {
+	if ([2, 3, 5].includes(num)) {
+		return true;
+	}
+	for (const p of [2, 3, 5]) {
 		if (num % p === 0) {
 			return false;
+		}
+	}
+	const sqrt = Math.sqrt(num);
+	for (let p = 7; p <= sqrt; p += 30) {
+		for (const i of [0, 4, 6, 10, 12, 16, 22, 24]) {
+			if (num % (p + i) === 0) {
+				return false;
+			}
 		}
 	}
 	return true;
@@ -112,16 +136,16 @@ function isPrime(num) {
  * @returns {boolean}
  */
 function isKnownMersennePrime(p) {
-	return primes.has(p);
+	return mersennePrimes.has(p);
 }
 
 /**
- * Check if number is valid exponent.
+ * Check if number is valid Mersenne exponent.
  *
  * @param {number} num
  * @returns {boolean}
  */
-function isExp(num) {
+function isMersenneExp(num) {
 	// mersenne.org limits: 2 - 999,999,937
 	// mersenne.ca limits: 2 - 9,999,999,967
 	return num >= 2 && num <= Number.MAX_SAFE_INTEGER && isPrime(num);
@@ -134,11 +158,11 @@ function isExp(num) {
  * @returns {string[]|null}
  */
 function exps(exampleText) {
-	const expnums = Array.from(exampleText.matchAll(reExp), (x) => [x[0], Number.parseInt(x[1].replaceAll(re, ""), 10)]);
+	const expnums = Array.from(exampleText.matchAll(reMExp), (x) => [x[0], Number.parseInt(x[1].replaceAll(re, ""), 10)]);
 	if (expnums) {
-		const aexpnums = expnums.filter((x) => isExp(x[1]));
+		const aexpnums = Array.from(new Set(expnums.map((x) => x[1]))).filter((p) => isMersenneExp(p));
 		if (aexpnums.length) {
-			return aexpnums.map((x) => (isKnownMersennePrime(x[1]) ? "‼️" : "") + x[0]);
+			return aexpnums.map((p) => (isKnownMersennePrime(p) ? "‼️" : "") + expnums.find((x) => x[1] === p)[0]);
 		}
 	}
 	return null;
@@ -151,9 +175,9 @@ function exps(exampleText) {
  * @returns {number[]}
  */
 function exponents(exampleText) {
-	const expnums = Array.from(exampleText.matchAll(reExp), (x) => Number.parseInt(x[1].replaceAll(re, ""), 10));
+	const expnums = Array.from(exampleText.matchAll(reMExp), (x) => Number.parseInt(x[1].replaceAll(re, ""), 10));
 	if (expnums.length) {
-		return expnums.filter((p) => isExp(p));
+		return Array.from(new Set(expnums)).filter((p) => isMersenneExp(p));
 	}
 	return [];
 }
@@ -185,7 +209,7 @@ function getCAURLs(expnums, omnibox) {
 	if (expnums.length) {
 		if (settings.single || omnibox) {
 			if (expnums.length > 1) {
-				return [`${url}exponent.php?manyexponentdetails=${encodeURIComponent(expnums.join(";"))}`];
+				return [`${url}exponent.php?${new URLSearchParams({ manyexponentdetails: expnums.join(";") })}`];
 			}
 		}
 		return expnums.map((exp) => `${url}M${exp}`);
@@ -267,7 +291,7 @@ async function handleMenuChoosen(info, tab) {
 	const [menuItemId, id] = info.menuItemId.split("-");
 
 	switch (menuItemId) {
-		case TYPE.EXP: {
+		case TYPE.M: {
 			const expnums = exponents(text);
 			const aurls = getURLs[id](expnums);
 			if (aurls.length) {
@@ -326,13 +350,13 @@ async function buildMenu(exampleText) {
 
 	if (menuIsShown) {
 		const text = settings.livePreview && expnums ? ` (${formatter1.format(expnums).replaceAll("&", "&&")})` : "";
-		menus.update(TYPE.EXP, {
+		menus.update(TYPE.M, {
 			title: `Open exponents${text}`,
 			enabled: Boolean(expnums)
 		});
 	} else {
 		await menus.create({
-			id: TYPE.EXP,
+			id: TYPE.M,
 			title: "Open exponents",
 			contexts: ["selection"]
 		});
@@ -342,13 +366,13 @@ async function buildMenu(exampleText) {
 		if (index && !menuIsShown) {
 			await menus.create({
 				// id: id,
-				parentId: TYPE.EXP,
+				parentId: TYPE.M,
 				type: "separator",
 				contexts: ["selection"]
 			});
 		}
 
-		const aid = `${TYPE.EXP}-${key}`;
+		const aid = `${TYPE.M}-${key}`;
 		const menuText = `in ${key}`;
 		if (menuIsShown) {
 			menus.update(aid, {
@@ -358,14 +382,14 @@ async function buildMenu(exampleText) {
 		} else if (IS_CHROME) {
 			await menus.create({
 				id: aid,
-				parentId: TYPE.EXP,
+				parentId: TYPE.M,
 				title: menuText,
 				contexts: ["selection"]
 			});
 		} else {
 			await menus.create({
 				id: aid,
-				parentId: TYPE.EXP,
+				parentId: TYPE.M,
 				title: menuText,
 				icons: {
 					16: `https://www.${key}/favicon.ico`
@@ -510,3 +534,36 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 		buildMenu();
 	}
 });
+
+browser.runtime.onInstalled.addListener((details) => {
+	console.log(details);
+
+	const manifest = browser.runtime.getManifest();
+	switch (details.reason) {
+		case "install":
+			notification(`🎉 ${manifest.name} installed`, `Thank you for installing the “${TITLE}” add-on!\nVersion: ${manifest.version}\n\nOpen the options/preferences page to configure this extension.`);
+			break;
+		case "update":
+			if (settings.send) {
+				browser.notifications.create({
+					type: "basic",
+					iconUrl: browser.runtime.getURL("icons/icon_128.png"),
+					title: `✨ ${manifest.name} updated`,
+					message: `The “${TITLE}” add-on has been updated to version ${manifest.version}. Click to see the release notes.\n\n❤️ Huge thanks to the generous donors that have allowed me to continue to work on this extension!`
+				}).then(async (notificationId) => {
+					let url = "";
+					if (browser.runtime.getBrowserInfo) {
+						const browserInfo = await browser.runtime.getBrowserInfo();
+
+						url = browserInfo.name === "Thunderbird" ? `https://addons.thunderbird.net/thunderbird/addon/gimps-opener/versions/${manifest.version}` : `https://addons.mozilla.org/firefox/addon/gimps-opener/versions/${manifest.version}`;
+					}
+					if (url) {
+						notifications.set(notificationId, url);
+					}
+				});
+			}
+			break;
+	}
+});
+
+browser.runtime.setUninstallURL("https://forms.gle/QsjrFg2GZALHbkQWA");

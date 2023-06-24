@@ -39,11 +39,12 @@ Pull requests welcome! Ideas for contributions:
 * Convert to [Manifest V3](https://extensionworkshop.com/documentation/develop/manifest-v3-migration-guide/) (MV3)
 * Refactor into more modules
 * Support more than one top level context menu item (see [bug 1294429](https://bugzilla.mozilla.org/show_bug.cgi?id=1294429))
-* Show omnibox suggestions in private windows in Firefox (see [bug 1779400](https://bugzilla.mozilla.org/show_bug.cgi?id=1779400))
 * Support changing the omnibox keyword (see [bug 1375453](https://bugzilla.mozilla.org/show_bug.cgi?id=1375453))
 * Improve the performance
 	* Use [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly) to check if the numbers are prime
-	* Use a combination of Miller-Rabin for detecting composites and Lucas for detecting primes (see the [factor](https://www.gnu.org/software/coreutils/manual/html_node/factor-invocation.html) command from GNU Coreutils)
+	* Use faster algorithms, such as a combination of Miller-Rabin for detecting composites and Lucas for detecting primes (see the [factor](https://www.gnu.org/software/coreutils/manual/html_node/factor-invocation.html) command from GNU Coreutils)
+* Support opening exponent numbers on mersenne.org greater than 999,999,937
+* Support opening exponents for [Fermat numbers](https://en.wikipedia.org/wiki/Fermat_number)
 * Sync settings in Thunderbird (see [bug 446444](https://bugzilla.mozilla.org/show_bug.cgi?id=446444))
 * Support Firefox for Android (see [bug 1595822](https://bugzilla.mozilla.org/show_bug.cgi?id=1595822) and [bug 1427501](https://bugzilla.mozilla.org/show_bug.cgi?id=1427501))
 * Localize the add-on
