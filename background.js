@@ -380,7 +380,8 @@ async function buildMenu(exampleText) {
 				title: menuText,
 				visible: Boolean(expnums)
 			});
-		} else if (IS_CHROME) {
+		} else if (IS_THUNDERBIRD || IS_CHROME) {
+			// Thunderbird 115 removed support for dynamically setting the menu icon: https://bugzilla.mozilla.org/show_bug.cgi?id=1862387
 			await menus.create({
 				id: aid,
 				parentId: TYPE.M,
