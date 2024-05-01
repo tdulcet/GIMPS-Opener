@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/tdulcet/GIMPS-Opener/workflows/CI/badge.svg?branch=main)](https://github.com/tdulcet/GIMPS-Opener/actions)
+[![Actions Status](https://github.com/tdulcet/GIMPS-Opener/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tdulcet/GIMPS-Opener/actions/workflows/ci.yml)
 
 # GIMPS Opener
 Open GIMPS exponent numbers
