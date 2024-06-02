@@ -189,7 +189,7 @@ function exponents(exampleText) {
  * @param {boolean} [omnibox]
  * @returns {string[]}
  */
-function getORGURLs(expnums/* , omnibox */) {
+function getORGURLs(expnums, _omnibox) {
 	const url = "https://www.mersenne.org/";
 	if (expnums.length) {
 		return expnums.map((exp) => `${url}M${exp}`);
@@ -323,7 +323,11 @@ async function handleMenuChoosen(info, tab) {
 
 			if (urls.length > 1) {
 				for (const url of urls) {
-					await browser.tabs.create({ url, active: aactive, discarded: !aactive && settings.lazy, /* index: aindex, */ openerTabId: tab.id });
+					const options = { url, active: aactive, /* index: aindex, */ openerTabId: tab.id };
+					if (!IS_CHROME) {
+						options.discarded = !aactive && settings.lazy;
+					}
+					await browser.tabs.create(options);
 					// aindex += 1;
 					aactive = false;
 					if (settings.delay) {
@@ -331,7 +335,11 @@ async function handleMenuChoosen(info, tab) {
 					}
 				}
 			} else if (settings.newTab) {
-				browser.tabs.create({ url: urls[0], active: aactive, discarded: !aactive && settings.lazy, /* index: aindex, */ openerTabId: tab.id });
+				const options = { url: urls[0], active: aactive, /* index: aindex, */ openerTabId: tab.id };
+				if (!IS_CHROME) {
+					options.discarded = !aactive && settings.lazy;
+				}
+				browser.tabs.create(options);
 			} else {
 				browser.tabs.update(tab.id, { url: urls[0] });
 			}
@@ -380,8 +388,7 @@ async function buildMenu(exampleText) {
 				title: menuText,
 				visible: Boolean(expnums)
 			});
-		} else if (IS_THUNDERBIRD || IS_CHROME) {
-			// Thunderbird 115 removed support for dynamically setting the menu icon: https://bugzilla.mozilla.org/show_bug.cgi?id=1862387
+		} else if (IS_CHROME) {
 			await menus.create({
 				id: aid,
 				parentId: TYPE.M,
@@ -515,7 +522,7 @@ async function init() {
 
 init();
 
-browser.runtime.onMessage.addListener(async (message, sender) => {
+browser.runtime.onMessage.addListener(async (message, _sender) => {
 	// console.log(message);
 	if (message.type === UPDATE_CONTEXT_MENU) {
 		let text = message.selection;
