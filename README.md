@@ -27,10 +27,32 @@ To contribute to GIMPS, please see the [Distributed Computing](https://github.co
 
 ❤️ Please visit [tealdulcet.com](https://www.tealdulcet.com/) to support this extension and my other software development.
 
-⬇️ Download from [Addons.mozilla.org](https://addons.mozilla.org/firefox/addon/gimps-opener/) (AMO) and [Addons.thunderbird.net](https://addons.thunderbird.net/thunderbird/addon/gimps-opener/) (ATN).
+## Download
 
-Use on Thunderbird requires renaming the [thunderbirdmanifest.json](thunderbirdmanifest.json) file to `manifest.json`.
-Use on Chromium/Chrome requires the downloading the [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) and renaming the [chromemanifest.json](chromemanifest.json) file to `manifest.json`.
+* [Addons.mozilla.org](https://addons.mozilla.org/firefox/addon/gimps-opener/) (AMO)
+* [Addons.thunderbird.net](https://addons.thunderbird.net/thunderbird/addon/gimps-opener/) (ATN)
+
+## Install from source
+
+Clone the repository:
+```bash
+git clone --recurse-submodules https://github.com/tdulcet/GIMPS-Opener.git
+```
+
+### Firefox
+
+Follow [these instructions](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/) to install it in Firefox
+
+### Thunderbird
+
+1. Rename the [thunderbirdmanifest.json](thunderbirdmanifest.json) file to `manifest.json`
+2. Follow [these instructions](https://developer.thunderbird.net/add-ons/hello-world-add-on#installing) to install it in Thunderbird
+
+### Chromium/Chrome
+
+1. Download the [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) (specifically download the `browser-polyfill.js` file [from here](https://unpkg.com/webextension-polyfill/dist/))
+2. Rename the [chromemanifest.json](chromemanifest.json) file to `manifest.json`
+3. Follow [these instructions](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world) to install it in Chromium/Chrome
 
 ## Contributing
 
@@ -41,7 +63,7 @@ Pull requests welcome! Ideas for contributions:
 * Support more than one top level context menu item (see [bug 1294429](https://bugzilla.mozilla.org/show_bug.cgi?id=1294429))
 * Support changing the omnibox keyword (see [bug 1375453](https://bugzilla.mozilla.org/show_bug.cgi?id=1375453))
 * Improve the performance
-	* Use [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly) to check if the numbers are prime
+	* Use [WebAssembly](https://developer.mozilla.org/docs/WebAssembly) to check if the numbers are prime
 	* Use faster algorithms, such as a combination of Miller-Rabin for detecting composites and Lucas for detecting primes (see the [factor](https://www.gnu.org/software/coreutils/manual/html_node/factor-invocation.html) command from GNU Coreutils)
 * Support opening exponent numbers on mersenne.org greater than 999,999,937
 * Support opening exponents for [Fermat numbers](https://en.wikipedia.org/wiki/Fermat_number)

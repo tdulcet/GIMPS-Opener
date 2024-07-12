@@ -359,7 +359,7 @@ async function buildMenu(exampleText) {
 
 	if (menuIsShown) {
 		const text = settings.livePreview && expnums ? ` (${formatter1.format(expnums).replaceAll("&", "&&")})` : "";
-		menus.update(TYPE.M, {
+		await menus.update(TYPE.M, {
 			title: `Open exponents${text}`,
 			enabled: Boolean(expnums)
 		});
@@ -384,7 +384,7 @@ async function buildMenu(exampleText) {
 		const aid = `${TYPE.M}-${key}`;
 		const menuText = `in ${key}`;
 		if (menuIsShown) {
-			menus.update(aid, {
+			await menus.update(aid, {
 				title: menuText,
 				visible: Boolean(expnums)
 			});
