@@ -18,7 +18,9 @@ const reMExp = /\bM?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)\b/gu;
 // Remove commas and spaces
 const re = /[,\s]/gu;
 
-const mersennePrimes = new Set([2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161, 74207281, 77232917, 82589933]);
+const PRIMES = new Set([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]);
+
+const MERSENNE_PRIMES = new Set([2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161, 74207281, 77232917, 82589933, 136279841]);
 
 // Thunderbird
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1641573
@@ -110,19 +112,23 @@ function isPrime(num) {
 	if (num < 2) {
 		return false;
 	}
-	if ([2, 3, 5].includes(num)) {
+	if (PRIMES.has(num)) {
 		return true;
 	}
-	for (const p of [2, 3, 5]) {
-		if (num % p === 0) {
+	for (const p of PRIMES) {
+		if (!(num % p)) {
 			return false;
 		}
 	}
 	const sqrt = Math.sqrt(num);
-	for (let p = 7; p <= sqrt; p += 30) {
-		for (const i of [0, 4, 6, 10, 12, 16, 22, 24]) {
-			if (num % (p + i) === 0) {
+	for (let p = 11; p <= sqrt;) {
+		for (const i of [2, 4, 2, 4, 6, 2, 6, 4, 2, 4, 6, 6, 2, 6, 4, 2, 6, 4, 6, 8, 4, 2, 4, 2, 4, 8, 6, 4, 6, 2, 4, 6, 2, 6, 6, 4, 2, 4, 6, 2, 6, 4, 2, 4, 2, 10, 2, 10]) {
+			if (!(num % p)) {
 				return false;
+			}
+			p += i;
+			if (p > sqrt) {
+				break;
 			}
 		}
 	}
@@ -136,7 +142,7 @@ function isPrime(num) {
  * @returns {boolean}
  */
 function isKnownMersennePrime(p) {
-	return mersennePrimes.has(p);
+	return MERSENNE_PRIMES.has(p);
 }
 
 /**
