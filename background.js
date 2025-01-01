@@ -18,9 +18,30 @@ const reMExp = /\bM?(\d{4,}|\d{1,3}(?:[,\s]\d{3})*)\b/gu;
 // Remove commas and spaces
 const re = /[,\s]/gu;
 
-const PRIMES = new Set([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]);
+const PRIMES = Object.freeze([2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n, 41n]);
 
-const MERSENNE_PRIMES = new Set([2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161, 74207281, 77232917, 82589933, 136279841]);
+// https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Testing_against_small_sets_of_bases
+// https://oeis.org/A006945
+const PRIME_BASES = Object.freeze([
+	[1, 2047n],
+	[2, 1373653n],
+	[3, 25326001n],
+	[4, 3215031751n],
+	[5, 2152302898747n],
+	[6, 3474749660383n],
+	[7, 341550071728321n],
+	[9, 3825123056546413051n],
+	[12, 318665857834031151167461n],
+	[13, 3317044064679887385961981n]
+	// Propositions only
+	// https://www.ams.org/journals/mcom/2007-76-260/S0025-5718-07-01977-1/S0025-5718-07-01977-1.pdf
+	// [14, 600309428967010580031259650n],
+	// [15, 59276361075595573263446330101n],
+	// [16, 564132928021909221014087501701n],
+	// [18, 1543267864443420616877677640751301n]
+]);
+
+const MERSENNE_PRIMES = new Set([2n, 3n, 5n, 7n, 13n, 17n, 19n, 31n, 61n, 89n, 107n, 127n, 521n, 607n, 1279n, 2203n, 2281n, 3217n, 4253n, 4423n, 9689n, 9941n, 11213n, 19937n, 21701n, 23209n, 44497n, 86243n, 110503n, 132049n, 216091n, 756839n, 859433n, 1257787n, 1398269n, 2976221n, 3021377n, 6972593n, 13466917n, 20996011n, 24036583n, 25964951n, 30402457n, 32582657n, 37156667n, 42643801n, 43112609n, 57885161n, 74207281n, 77232917n, 82589933n, 136279841n]);
 
 // Thunderbird
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1641573
@@ -103,42 +124,134 @@ function encodeXML(text) {
 }
 
 /**
- * Check if number is prime.
+ * Multiply mod.
  *
- * @param {number} num
+ * @param {bigint} a
+ * @param {bigint} b
+ * @param {bigint} mod
+ * @returns {bigint}
+ */
+function mulm(a, b, mod) {
+	let res = 0n;
+
+	for (; b; b >>= 1n) {
+		if (b & 1n) {
+			res = (res + a) % mod;
+		}
+
+		a = (a << 1n) % mod;
+	}
+
+	return res;
+}
+
+/**
+ * Power mod.
+ *
+ * @param {bigint} base
+ * @param {bigint} exp
+ * @param {bigint} mod
+ * @returns {bigint}
+ */
+function powm(base, exp, mod) {
+	let res = 1n;
+
+	for (; exp; exp >>= 1n) {
+		if (exp & 1n) {
+			// res = (res * base) % mod;
+			res = mulm(res, base, mod);
+		}
+
+		// base = (base * base) % mod;
+		base = mulm(base, base, mod);
+	}
+
+	return res;
+}
+
+/**
+ * Miller Rabin.
+ *
+ * @param {bigint} n
+ * @param {bigint} nm1
+ * @param {bigint} a
+ * @param {bigint} d
+ * @param {number} s
  * @returns {boolean}
  */
-function isPrime(num) {
-	if (num < 2) {
+function miller_rabin(n, nm1, a, d, s) {
+	let x = powm(a, d, n);
+
+	if (x === 1n || x === nm1) {
 		return false;
 	}
-	if (PRIMES.has(num)) {
-		return true;
+
+	for (let i = 1; i < s; ++i) {
+		x = mulm(x, x, n);
+
+		if (x === nm1) {
+			return false;
+		}
+		if (x === 1n) {
+			return true;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Check if number is prime.
+ *
+ * @param {bigint} n
+ * @returns {boolean}
+ */
+function isPrime(n) {
+	if (n < 2n) {
+		return false;
 	}
 	for (const p of PRIMES) {
-		if (!(num % p)) {
+		if (n === p) {
+			return true;
+		}
+		if (!(n % p)) {
 			return false;
 		}
 	}
-	const sqrt = Math.sqrt(num);
-	for (let p = 11; p <= sqrt;) {
-		for (const i of [2, 4, 2, 4, 6, 2, 6, 4, 2, 4, 6, 6, 2, 6, 4, 2, 6, 4, 6, 8, 4, 2, 4, 2, 4, 8, 6, 4, 6, 2, 4, 6, 2, 6, 6, 4, 2, 4, 6, 2, 6, 4, 2, 4, 2, 10, 2, 10]) {
-			if (!(num % p)) {
-				return false;
-			}
-			p += i;
-			if (p > sqrt) {
-				break;
-			}
+
+	const nm1 = n - 1n;
+
+	let r = 0;
+	let d = nm1;
+	while (!(d & 1n)) {
+		d >>= 1n;
+		++r;
+	}
+
+	let idx;
+	for (const [i, num] of PRIME_BASES) {
+		if (n < num) {
+			idx = i;
+			break;
 		}
 	}
+	if (idx == null) {
+		throw `Number too large: ${n}`;
+	}
+
+	for (let i = 0; i < idx; ++i) {
+		if (miller_rabin(n, nm1, PRIMES[i], d, r)) {
+			return false;
+		}
+	}
+
 	return true;
 }
 
 /**
  * Check if number is a known Mersenne prime.
  *
- * @param {number} p
+ * @param {bigint} p
  * @returns {boolean}
  */
 function isKnownMersennePrime(p) {
@@ -148,13 +261,13 @@ function isKnownMersennePrime(p) {
 /**
  * Check if number is valid Mersenne exponent.
  *
- * @param {number} num
+ * @param {bigint} num
  * @returns {boolean}
  */
 function isMersenneExp(num) {
 	// mersenne.org limits: 2 - 999,999,937
 	// mersenne.ca limits: 2 - 9,999,999,967
-	return num >= 2 && num <= Number.MAX_SAFE_INTEGER && isPrime(num);
+	return num >= 2n && num <= Number.MAX_SAFE_INTEGER && isPrime(num);
 }
 
 /**
@@ -164,7 +277,7 @@ function isMersenneExp(num) {
  * @returns {string[]|null}
  */
 function exps(exampleText) {
-	const expnums = Array.from(exampleText.matchAll(reMExp), (x) => [x[0], Number.parseInt(x[1].replaceAll(re, ""), 10)]);
+	const expnums = Array.from(exampleText.matchAll(reMExp), (x) => [x[0], BigInt(x[1].replaceAll(re, ""))]);
 	if (expnums) {
 		const aexpnums = Array.from(new Set(expnums.map((x) => x[1]))).filter((p) => isMersenneExp(p));
 		if (aexpnums.length) {
@@ -178,10 +291,10 @@ function exps(exampleText) {
  * Get exponents.
  *
  * @param {string} exampleText
- * @returns {number[]}
+ * @returns {bigint[]}
  */
 function exponents(exampleText) {
-	const expnums = Array.from(exampleText.matchAll(reMExp), (x) => Number.parseInt(x[1].replaceAll(re, ""), 10));
+	const expnums = Array.from(exampleText.matchAll(reMExp), (x) => BigInt(x[1].replaceAll(re, "")));
 	if (expnums.length) {
 		return Array.from(new Set(expnums)).filter((p) => isMersenneExp(p));
 	}
@@ -191,7 +304,7 @@ function exponents(exampleText) {
 /**
  * Get mersenne.org URLs.
  *
- * @param {number[]} expnums
+ * @param {bigint[]} expnums
  * @param {boolean} [omnibox]
  * @returns {string[]}
  */
@@ -206,7 +319,7 @@ function getORGURLs(expnums, _omnibox) {
 /**
  * Get mersenne.ca URLs.
  *
- * @param {number[]} expnums
+ * @param {bigint[]} expnums
  * @param {boolean} [omnibox]
  * @returns {string[]}
  */
@@ -227,7 +340,7 @@ function getCAURLs(expnums, omnibox) {
  * Get URLs.
  *
  * @const
- * @type {Object.<string, function(number[], boolean): string[]>}
+ * @type {Object.<string, function(bigint[], boolean): string[]>}
  */
 const getURLs = Object.freeze({
 	// mersenne.org

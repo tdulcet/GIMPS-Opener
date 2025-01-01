@@ -16,7 +16,7 @@ Firefox, Chromium and Thunderbird add-on/WebExtension to open [Great Internet Me
 * Type exponent numbers directly in the address bar/omnibox (Firefox and Chrome only, use the `exp` keyword)
 * Shows a live preview of the exponent(s) that would open
 * Supports exponents with an optional `M` prefix and optional comma or space digit separators
-* Ignores numbers that are not prime
+* Ignores numbers that are not prime using the deterministic [Miller–Rabin primality test](https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Deterministic_variants)
 * Supports opening exponents in the current tab, a new tab (default), a new window or a new private/incognito window (Firefox and Chrome only)
 * Supports lazy loading tabs (Firefox and Chrome only)
 * Supports the light/dark mode of your system automatically
@@ -64,7 +64,7 @@ Pull requests welcome! Ideas for contributions:
 * Support changing the omnibox keyword (see [bug 1375453](https://bugzilla.mozilla.org/show_bug.cgi?id=1375453))
 * Improve the performance
 	* Use [WebAssembly](https://developer.mozilla.org/docs/WebAssembly) to check if the numbers are prime
-	* Use faster algorithms, such as a combination of Miller-Rabin for detecting composites and Lucas for detecting primes (see the [factor](https://www.gnu.org/software/coreutils/manual/html_node/factor-invocation.html) command from GNU Coreutils)
+	* Use faster algorithms
 * Support opening exponent numbers on mersenne.org greater than 999,999,937
 * Support opening exponents for [Fermat numbers](https://en.wikipedia.org/wiki/Fermat_number)
 * Sync settings in Thunderbird (see [bug 446444](https://bugzilla.mozilla.org/show_bug.cgi?id=446444))
